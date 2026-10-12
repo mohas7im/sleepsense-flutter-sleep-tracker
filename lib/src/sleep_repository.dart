@@ -39,7 +39,7 @@ class SleepRepository {
         _manualSessions = manualSessions ?? defaultManualSessions;
 
   /// Manual source for repositories created without one, including the ones
-  /// the package creates internally. Set by `AutoSleepTracker.initialize`.
+  /// the package creates internally. Set by `SleepSense.initialize`.
   static ManualSleepSource? defaultManualSessions;
 
   /// Must be called once before using any query methods.

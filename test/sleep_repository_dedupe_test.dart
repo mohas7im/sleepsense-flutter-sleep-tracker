@@ -1,5 +1,5 @@
-import 'package:auto_sleep_tracker/src/sleep_repository.dart';
-import 'package:auto_sleep_tracker/src/sleep_session.dart';
+import 'package:sleep_sense/src/sleep_repository.dart';
+import 'package:sleep_sense/src/sleep_session.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 SleepSession _session(

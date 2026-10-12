@@ -17,7 +17,7 @@ import 'sleep_session.dart';
 class SleepDatabase {
   static const String epochTableName = 'sleep_epochs';
   static const String tableName = 'sleep_auto_sessions';
-  static const String defaultFileName = 'auto_sleep_tracker.db';
+  static const String defaultFileName = 'sleep_sense.db';
 
   static Future<Database>? _defaultDb;
 

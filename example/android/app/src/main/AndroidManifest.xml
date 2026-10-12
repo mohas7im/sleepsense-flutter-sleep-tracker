@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ─── auto_sleep_tracker ─────────────────────────────────────────── -->
+    <!-- ─── sleep_sense ─────────────────────────────────────────── -->
     <!-- Motion / step status from the pedometer. -->
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
     <!-- Foreground-service notification (Android 13+). -->
@@ -21,7 +21,7 @@
     <uses-permission android:name="android.permission.health.READ_SLEEP"/>
 
     <application
-        android:label="Auto Sleep Tracker"
+        android:label="SleepSense"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

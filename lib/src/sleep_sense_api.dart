@@ -14,18 +14,18 @@ import 'sleep_repository.dart';
 /// ```dart
 /// Future<void> main() async {
 ///   WidgetsFlutterBinding.ensureInitialized();
-///   await AutoSleepTracker.initialize();
+///   await SleepSense.initialize();
 ///   runApp(const MyApp());
 /// }
 ///
 /// // Once the user opts in (after granting permissions):
-/// await AutoSleepTracker.enable();
+/// await SleepSense.enable();
 ///
 /// // Read the history:
-/// final nights = await AutoSleepTracker.repository.getRecentSessions(days: 7);
+/// final nights = await SleepSense.repository.getRecentSessions(days: 7);
 /// ```
-class AutoSleepTracker {
-  AutoSleepTracker._();
+class SleepSense {
+  SleepSense._();
 
   static SleepRepository? _repository;
 

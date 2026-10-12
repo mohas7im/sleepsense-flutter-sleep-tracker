@@ -1,1 +1,1 @@
-rootProject.name = "auto_sleep_tracker"
+rootProject.name = "sleep_sense"

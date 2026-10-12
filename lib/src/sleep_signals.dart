@@ -10,8 +10,8 @@ class SleepSignals {
   SleepSignals._();
 
   /// Shared with the other parts of the package that talk to the plugin.
-  static const channel = MethodChannel('auto_sleep_tracker');
-  static const _events = EventChannel('auto_sleep_tracker/events');
+  static const channel = MethodChannel('sleep_sense');
+  static const _events = EventChannel('sleep_sense/events');
 
   static const _eventNames = {
     'SCREEN_ON': SleepSignalEvent.screenOn,

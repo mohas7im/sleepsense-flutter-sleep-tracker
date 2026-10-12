@@ -1,11 +1,11 @@
-name: auto_sleep_tracker
+name: sleep_sense
 description: >-
-  Automatic, sensor-based sleep tracking for Flutter on Android. Detects
-  sleep and wake from motion, screen, light and charging signals in a
-  background service — no wearable required.
+  Automatic sleep tracking for Flutter apps on Android. Uses the phone's own
+  sensors to detect when the user falls asleep and wakes up, with no wearable
+  and no button to press.
 version: 0.1.0
-repository: https://github.com/mohas7im/auto_sleep_tracker
-issue_tracker: https://github.com/mohas7im/auto_sleep_tracker/issues
+repository: https://github.com/mohas7im/sleep_sense
+issue_tracker: https://github.com/mohas7im/sleep_sense/issues
 topics:
   - sleep
   - health
@@ -41,5 +41,5 @@ flutter:
   plugin:
     platforms:
       android:
-        package: io.github.mohas7im.auto_sleep_tracker
-        pluginClass: AutoSleepTrackerPlugin
+        package: io.github.mohas7im.sleep_sense
+        pluginClass: SleepSensePlugin

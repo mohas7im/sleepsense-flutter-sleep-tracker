@@ -1,4 +1,4 @@
-package io.github.mohas7im.auto_sleep_tracker
+package io.github.mohas7im.sleep_sense
 
 import android.app.AppOpsManager
 import android.app.KeyguardManager
@@ -35,7 +35,7 @@ import java.util.concurrent.Executors
  *
  * Events: "SCREEN_ON", "SCREEN_OFF", "USER_PRESENT" (device unlocked).
  */
-class AutoSleepTrackerPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
+class SleepSensePlugin : FlutterPlugin, MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     private lateinit var context: Context
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
@@ -51,9 +51,9 @@ class AutoSleepTrackerPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
-        methodChannel = MethodChannel(binding.binaryMessenger, "auto_sleep_tracker")
+        methodChannel = MethodChannel(binding.binaryMessenger, "sleep_sense")
         methodChannel.setMethodCallHandler(this)
-        eventChannel = EventChannel(binding.binaryMessenger, "auto_sleep_tracker/events")
+        eventChannel = EventChannel(binding.binaryMessenger, "sleep_sense/events")
         eventChannel.setStreamHandler(this)
     }
 

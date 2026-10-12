@@ -25,10 +25,10 @@ import 'sleep_repository.dart';
 import 'sleep_recovery_manager.dart';
 
 /// Unique task name for the periodic 15-minute boundary check.
-const _boundaryCheckTask = 'auto_sleep_tracker.boundary_check';
+const _boundaryCheckTask = 'sleep_sense.boundary_check';
 
 /// Unique task name for a one-shot check triggered at night-window start.
-const _nightWindowStartTask = 'auto_sleep_tracker.night_window_start';
+const _nightWindowStartTask = 'sleep_sense.night_window_start';
 
 /// WorkManager callback — must be a top-level function (not an instance method).
 /// This is the entry point for all background task execution.

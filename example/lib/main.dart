@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:auto_sleep_tracker/auto_sleep_tracker.dart';
+import 'package:sleep_sense/sleep_sense.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AutoSleepTracker.initialize(
+  await SleepSense.initialize(
     notificationTitle: 'Sleep tracking',
     notificationContent: 'Watching for sleep tonight',
     onSleepFinishedInBackground: onSleepFinishedInBackground,
@@ -26,7 +26,7 @@ class ExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Auto Sleep Tracker',
+      title: 'SleepSense',
       theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
       darkTheme: ThemeData(
         colorSchemeSeed: Colors.indigo,
@@ -58,7 +58,7 @@ class _SleepHomePageState extends State<SleepHomePage> {
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _onResume);
-    _finished = AutoSleepTracker.onSleepFinished.listen((_) => _reload());
+    _finished = SleepSense.onSleepFinished.listen((_) => _reload());
     _start();
   }
 
@@ -70,18 +70,18 @@ class _SleepHomePageState extends State<SleepHomePage> {
   }
 
   Future<void> _start() async {
-    await AutoSleepTracker.onAppStart();
+    await SleepSense.onAppStart();
     await _reload();
   }
 
   Future<void> _onResume() async {
-    if (await AutoSleepTracker.onAppResumed()) await _reload();
+    if (await SleepSense.onAppResumed()) await _reload();
   }
 
   Future<void> _reload() async {
-    final repo = AutoSleepTracker.repository;
-    final enabled = await AutoSleepTracker.isEnabled();
-    final capabilities = await AutoSleepTracker.checkCapabilities();
+    final repo = SleepSense.repository;
+    final enabled = await SleepSense.isEnabled();
+    final capabilities = await SleepSense.checkCapabilities();
     final ongoing = await repo.getOngoingSession();
     final nights = await repo.getRecentSessions(days: 14);
     if (!mounted) return;
@@ -95,10 +95,10 @@ class _SleepHomePageState extends State<SleepHomePage> {
 
   Future<void> _setEnabled(bool on) async {
     if (on) {
-      await AutoSleepTracker.requestPermissions();
-      await AutoSleepTracker.enable();
+      await SleepSense.requestPermissions();
+      await SleepSense.enable();
     } else {
-      await AutoSleepTracker.disable();
+      await SleepSense.disable();
     }
     await _reload();
   }
@@ -107,7 +107,7 @@ class _SleepHomePageState extends State<SleepHomePage> {
   Widget build(BuildContext context) {
     final issues = _capabilities?.issues ?? const <String>[];
     return Scaffold(
-      appBar: AppBar(title: const Text('Auto Sleep Tracker')),
+      appBar: AppBar(title: const Text('SleepSense')),
       body: RefreshIndicator(
         onRefresh: _reload,
         child: ListView(

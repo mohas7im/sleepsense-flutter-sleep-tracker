@@ -1,4 +1,4 @@
-import 'package:auto_sleep_tracker/src/sleep_recovery_manager.dart';
+import 'package:sleep_sense/src/sleep_recovery_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ScreenEvent on(DateTime t) => (at: t, type: ScreenEventType.screenOn);

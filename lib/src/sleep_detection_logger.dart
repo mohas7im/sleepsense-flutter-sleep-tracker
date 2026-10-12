@@ -363,7 +363,7 @@ class SleepDetectionLogger {
   String exportFormattedText() {
     if (_logs.isEmpty) return 'No auto-tracking diagnostic logs available.';
     final sb = StringBuffer();
-    sb.writeln('=== Auto Sleep Tracker Diagnostic Logs ===');
+    sb.writeln('=== SleepSense Diagnostic Logs ===');
     sb.writeln('Generated: ${DateTime.now().toIso8601String()}');
     sb.writeln('Total Log Entries: ${_logs.length}\n');
 

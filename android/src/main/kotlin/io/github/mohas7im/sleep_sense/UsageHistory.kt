@@ -1,4 +1,4 @@
-package io.github.mohas7im.auto_sleep_tracker
+package io.github.mohas7im.sleep_sense
 
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager

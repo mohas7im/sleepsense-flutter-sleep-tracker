@@ -1,5 +1,5 @@
-name: auto_sleep_tracker_example
-description: "Demonstrates how to use the auto_sleep_tracker plugin."
+name: sleep_sense_example
+description: "Demonstrates how to use the sleep_sense plugin."
 publish_to: 'none'
 
 environment:
@@ -8,7 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  auto_sleep_tracker:
+  sleep_sense:
     path: ../
 
 dev_dependencies:

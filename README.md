@@ -1,161 +1,283 @@
-# auto_sleep_tracker
+# SleepSense 🌙
 
-[![CI](https://github.com/mohas7im/auto_sleep_tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/mohas7im/auto_sleep_tracker/actions/workflows/ci.yml)
+[![CI](https://github.com/mohas7im/sleep_sense/actions/workflows/ci.yml/badge.svg)](https://github.com/mohas7im/sleep_sense/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84.svg)
 
-Automatic sleep tracking for Flutter on Android, with no wearable and no button to press.
+**Automatic sleep tracking for Flutter apps. No smartwatch, no "I'm going to bed" button. The phone works it out on its own.**
 
-The phone works out when you fell asleep and when you got up from signals it already has: motion, screen on/off, unlocks, ambient light, proximity, charging state and step activity. A foreground service runs the detection loop all night, even after the app is swiped away.
+Add SleepSense to your app, turn it on once, and every morning your app knows:
 
-> ⚠️ **Wellness estimate, not a medical device.** Detection is heuristic. Sleep stages (deep/REM/light) are deliberately not estimated, because a phone's sensors can't measure them reliably.
+- 🛏️ when the user fell asleep
+- ⏰ when they woke up
+- 📊 how well they slept (a 0–100 score, awakenings, sleep efficiency)
+
+---
+
+## How does it know I'm asleep?
+
+Your phone already has sensors that tell a lot about what you're doing. SleepSense checks them once a minute, all night:
+
+| Signal | What it tells us |
+|---|---|
+| 📳 **Motion** (accelerometer, gyroscope) | Is the phone lying still on the bed or nightstand? |
+| 📱 **Screen and unlocks** | Is the user still scrolling, or has the phone been untouched for a while? |
+| 💡 **Light** | Is the room dark? |
+| 🔌 **Charging** | Most people plug in at bedtime and unplug in the morning. |
+| 🚶 **Steps** | Is the user walking around (awake)? |
+| 🕒 **Time of day** | Learns the user's usual bedtime and gets more confident around it. |
+
+When the phone has been still, dark and unused for about 25 minutes, SleepSense decides the user is asleep. When they pick up the phone, unlock it or walk around in the morning, it records the wake-up time.
+
+> ⚠️ **This is a wellness feature, not a medical device.** The results are good estimates, not clinical measurements. SleepSense doesn't guess sleep stages (deep, REM, light), because phone sensors can't measure them reliably.
+
+---
 
 ## Features
 
-- **Hands-free detection**: a per-minute state machine (`awake → possibleSleep → sleeping → possibleWake`) driven by burst-sampled accelerometer and gyroscope data, screen and unlock events, light, proximity and charging.
-- **Survives the night**: runs in a headless `flutter_background_service` isolate, with a 15-minute WorkManager fallback that closes stale sessions.
-- **Self-repairing history**: on app start and resume it closes sessions the user has clearly woken from, corrects late wake times from screen history, and can fill a missed night from Android usage stats.
-- **Analysis**: sleep efficiency, awakenings, longest continuous sleep, a 0–100 quality score, consistency, and personalised tips.
-- **Learns the user's schedule**: a circadian profile built from past nights tunes detection sensitivity.
-- **Health Connect import** (optional): pulls sleep sessions recorded by wearables and other apps.
-- **Your data stays on the device**: stored in a local SQLite file, with nothing sent anywhere. Export to CSV or JSON.
+- ✅ **Fully automatic**: no buttons and no wearable needed.
+- ✅ **Works with the app closed**: tracking keeps running even after the user swipes the app away.
+- ✅ **Fixes its own mistakes**: if the phone killed tracking overnight, SleepSense repairs the night from the phone's screen history next time the app opens.
+- ✅ **Sleep analysis**: quality score, awakenings, longest unbroken sleep, consistency and tips.
+- ✅ **Morning callback**: run your own code (e.g. a "You slept 7h 20m" notification) the moment the user wakes up.
+- ✅ **Health Connect** (optional): import sleep recorded by smartwatches and other apps.
+- ✅ **Private**: everything stays in a local database on the phone. Nothing is uploaded.
+- ✅ **Battery friendly**: reads sensors in short 12-second bursts, never continuously.
 
-## Platform support
+---
 
-| Android | iOS |
-|:-:|:-:|
-| ✅ API 26+ | ❌ not yet. iOS doesn't allow continuous overnight background sensing |
+## Requirements
 
-## Installation
+| | |
+|---|---|
+| Platform | **Android 8.0+** (API 26). iOS is not supported, because it doesn't allow apps to read sensors all night in the background. |
+| Flutter | 3.27 or newer |
+
+---
+
+## Getting started
+
+### 1. Add the package
+
+In your app's `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  auto_sleep_tracker:
+  sleep_sense:
     git:
-      url: https://github.com/mohas7im/auto_sleep_tracker.git
+      url: https://github.com/mohas7im/sleep_sense.git
 ```
 
-### Android setup
+Then run `flutter pub get`.
 
-1. **`android/app/build.gradle.kts`**: set `minSdk = 26`.
+### 2. Set up Android
 
-2. **`MainActivity.kt`**: extend `FlutterFragmentActivity` (the Health Connect permission flow needs it):
+**a) Minimum Android version.** In `android/app/build.gradle.kts`:
 
-   ```kotlin
-   class MainActivity : FlutterFragmentActivity()
-   ```
+```kotlin
+defaultConfig {
+    minSdk = 26
+}
+```
 
-3. **`AndroidManifest.xml`**: add the permissions and the service type:
+**b) Main activity.** In `android/app/src/main/kotlin/.../MainActivity.kt`, change `FlutterActivity` to `FlutterFragmentActivity`:
 
-   ```xml
-   <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-       xmlns:tools="http://schemas.android.com/tools">
+```kotlin
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-       <!-- Required -->
-       <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
-       <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-       <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-       <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
-       <uses-permission android:name="android.permission.WAKE_LOCK"/>
-       <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+class MainActivity : FlutterFragmentActivity()
+```
 
-       <!-- Optional: ask to be exempt from battery optimization -->
-       <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-       <!-- Optional: screen history, used to repair missed or late-closed nights -->
-       <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
-           tools:ignore="ProtectedPermissions"/>
-       <!-- Optional: Health Connect sleep import -->
-       <uses-permission android:name="android.permission.health.READ_SLEEP"/>
+**c) Permissions.** In `android/app/src/main/AndroidManifest.xml`:
 
-       <application ...>
-           ...
-           <!-- Android 14+ needs a type on the overnight foreground service -->
-           <service
-               android:name="id.flutter.flutter_background_service.BackgroundService"
-               android:foregroundServiceType="health"/>
-       </application>
-   </manifest>
-   ```
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-See [`example/android/app/src/main/AndroidManifest.xml`](example/android/app/src/main/AndroidManifest.xml) for a complete manifest.
+    <!-- Required -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
-## Usage
+    <!-- Recommended: lets you ask Android not to stop tracking to save battery -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+
+    <!-- Optional: lets SleepSense repair nights it missed -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions"/>
+
+    <!-- Optional: import sleep from Health Connect -->
+    <uses-permission android:name="android.permission.health.READ_SLEEP"/>
+
+    <application ...>
+        ...
+        <!-- Required: the service that tracks sleep overnight -->
+        <service
+            android:name="id.flutter.flutter_background_service.BackgroundService"
+            android:foregroundServiceType="health"/>
+    </application>
+</manifest>
+```
+
+💡 For a complete working setup, see the [example app's manifest](example/android/app/src/main/AndroidManifest.xml).
+
+### 3. Start SleepSense
+
+In `main.dart`:
 
 ```dart
-import 'package:auto_sleep_tracker/auto_sleep_tracker.dart';
+import 'package:flutter/material.dart';
+import 'package:sleep_sense/sleep_sense.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AutoSleepTracker.initialize(
-    notificationTitle: 'Sleep tracking',
-    onSleepFinishedInBackground: onSleepFinished, // optional
-  );
+  await SleepSense.initialize();
   runApp(const MyApp());
-}
-
-// Runs in the background isolate when a night ends, even with the app closed.
-@pragma('vm:entry-point')
-void onSleepFinished(SleepFinishedEvent night) {
-  // e.g. show a "You slept 7h 12m" notification
 }
 ```
 
-In your first screen:
+When your first screen opens:
 
 ```dart
-late final AppLifecycleListener _lifecycle;
-
 @override
 void initState() {
   super.initState();
-  AutoSleepTracker.onAppStart(); // repairs state, restarts tracking if enabled
-  _lifecycle = AppLifecycleListener(onResume: () async {
-    if (await AutoSleepTracker.onAppResumed()) reload();
-  });
+  SleepSense.onAppStart();
 }
 ```
 
-Turn tracking on and off:
+### 4. Let the user turn it on
 
 ```dart
-await AutoSleepTracker.requestPermissions();
-await AutoSleepTracker.enable();
-// ...
-await AutoSleepTracker.disable();
+// e.g. in a "Track my sleep automatically" switch
+await SleepSense.requestPermissions();
+await SleepSense.enable();
 ```
 
-Read the history:
+That's it. Tonight's sleep will be recorded. 🎉
+
+### 5. Show the results
 
 ```dart
-final repo = AutoSleepTracker.repository;
-final nights = await repo.getRecentSessions(days: 7);
-final ongoing = await repo.getOngoingSession();
+final nights = await SleepSense.repository.getRecentSessions(days: 7);
 
-final epochs = await repo.getEpochsForSession(nights.first.id);
+for (final night in nights) {
+  print('${night.canonicalDateString}: ${night.durationLabel} '
+        '(${night.bedtimeLabel} → ${night.wakeTimeLabel})');
+}
+// 2026-10-11: 7h 24m (11:42 PM → 7:06 AM)
+```
+
+---
+
+## Common tasks
+
+### Is the user asleep right now?
+
+```dart
+final ongoing = await SleepSense.repository.getOngoingSession();
+if (ongoing != null) print('Asleep since ${ongoing.bedtimeLabel}');
+```
+
+### Get a detailed analysis of one night
+
+```dart
+final night = nights.first;
+final epochs = await SleepSense.repository.getEpochsForSession(night.id);
+
 final analysis = SleepAnalysisEngine.analyze(
-  session: nights.first,
+  session: night,
   epochs: epochs,
   targetHours: 8,
 );
 ```
 
-Nights that end while your UI is open also arrive on `AutoSleepTracker.onSleepFinished`.
+### Send a "good morning" notification
 
-### Tuning
+Pass a function to `initialize`. It runs when the user wakes up, **even if your app is closed**:
 
 ```dart
+await SleepSense.initialize(onSleepFinishedInBackground: onWakeUp);
+
+// Must be a top-level function (outside any class) with this annotation.
+@pragma('vm:entry-point')
+void onWakeUp(SleepFinishedEvent night) {
+  // Show your notification here, e.g. with flutter_local_notifications.
+  // night.durationMinutes, night.sleepScore, night.sleepStart, night.wakeTime
+}
+```
+
+If your app is open at the time, you can also listen to `SleepSense.onSleepFinished`.
+
+### Refresh when the user comes back to the app
+
+```dart
+AppLifecycleListener(onResume: () async {
+  final changed = await SleepSense.onAppResumed();
+  if (changed) reloadMyScreen();
+});
+```
+
+### Turn tracking off
+
+```dart
+await SleepSense.disable();
+```
+
+### Adjust for the user
+
+```dart
+// Soft mattress or sharing the bed? Be less sensitive to movement.
 await SleepDetectionService.setSensitivityProfile(SensitivityProfile.softMattressOrPartner);
-await SleepDetectionService.setNightWindowStartHour(21);
-await SleepDetectionService.setNightWindowEndHour(10);
+
+// Hours when night-time sleep is expected (24h clock)
+await SleepDetectionService.setNightWindowStartHour(21); // 9 PM
+await SleepDetectionService.setNightWindowEndHour(10);   // 10 AM
+
+// Sleep goal used in scores
 await SleepDetectionService.setSleepTargetHours(8);
+
+// Also detect daytime naps
 await SleepDetectionService.setNapModeEnabled(true);
 ```
 
-### Merging manual sleep logs
-
-If your app lets users log sleep by hand, pass it in. Manual entries override auto-detected sessions for the same night:
+### Export data
 
 ```dart
-await AutoSleepTracker.initialize(
+final csv = await SleepSense.repository.exportSessionsToCSV(days: 30);
+final json = await SleepSense.repository.exportSessionsToJSON(days: 30);
+```
+
+---
+
+## Making tracking reliable
+
+Some phone brands (Xiaomi, Oppo, Vivo, Samsung and others) aggressively close background apps to save battery, which can stop sleep tracking at night. To avoid this:
+
+1. **Ask to be excluded from battery optimization:**
+   ```dart
+   final report = await SleepSense.checkCapabilities();
+   if (report.isExemptFromBatteryOptimization == false) {
+     await SleepSignals.requestBatteryOptimizationExemption();
+   }
+   ```
+2. **Show the user what's missing.** `report.issues` is a list of plain-English problems (missing permissions and so on) that you can display in your settings screen.
+3. **Point users to [dontkillmyapp.com](https://dontkillmyapp.com)** for brand-specific steps.
+
+---
+
+## Advanced
+
+<details>
+<summary><b>Merge sleep the user logged by hand</b></summary>
+
+If your app also lets users log sleep manually, pass those entries in. A manual entry replaces the automatic one for the same night.
+
+```dart
+await SleepSense.initialize(
   manualSessions: () async => myLogs.map((log) => SleepSession.fromManualEntry(
     id: log.id,
     date: log.date,          // 'YYYY-MM-DD'
@@ -169,12 +291,16 @@ await AutoSleepTracker.initialize(
   )).toList(),
 );
 ```
+</details>
 
-### Apps that already use WorkManager
+<details>
+<summary><b>Your app already uses WorkManager</b></summary>
 
-WorkManager allows one dispatcher per app. Pass `initializeWorkManager: false` and route the package's tasks from your own dispatcher:
+Android allows only one WorkManager dispatcher per app. Tell SleepSense not to set one up, and forward its tasks from yours:
 
 ```dart
+await SleepSense.initialize(initializeWorkManager: false);
+
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, data) async {
@@ -185,49 +311,82 @@ void callbackDispatcher() {
   });
 }
 ```
+</details>
 
-### Using your own database
+<details>
+<summary><b>Store sleep data in your own database</b></summary>
 
-Sleep data goes in its own `auto_sleep_tracker.db` by default. To keep it in your app's database, call `SleepDatabase.createTable` and `SleepDatabase.createEpochTable` from your `onCreate`, then use `SleepRepository(database: () async => myDb)`.
+By default SleepSense keeps its data in its own file, `sleep_sense.db`. To use your app's sqflite database instead, create the tables in your `onCreate`:
 
-## How it works
-
-```
- Awake ──[still, dark, screen off]──► PossibleSleep
- PossibleSleep ──[25 min sustained]──► Sleeping
- Sleeping ──[motion / screen / unlock / walking]──► PossibleWake
- PossibleWake ──[5 min sustained, or clearly got up]──► Awake
- PossibleWake ──[still again]──► Sleeping      (brief awakening)
+```dart
+await SleepDatabase.createTable(db);
+await SleepDatabase.createEpochTable(db);
 ```
 
-Each minute the background service:
-1. Samples the accelerometer and gyroscope for 12 seconds (burst sampling, never continuous).
-2. Reads charging state, light, proximity, step activity and screen/unlock events.
-3. Feeds a `SensorSnapshot` to the pure, I/O-free `SleepStateMachine`.
-4. Stores a per-minute `SleepEpoch` and the session boundaries in SQLite.
+Then use `SleepRepository(database: () async => myDatabase)`.
+</details>
 
-The state machine has no I/O, so you can unit-test it end to end (see [`test/sleep_state_machine_test.dart`](test/sleep_state_machine_test.dart)).
+<details>
+<summary><b>How the detection works internally</b></summary>
 
-## Reliability tips
+Each minute, the background service:
 
-Aggressive battery managers on some phones (Xiaomi, Oppo, Vivo, Samsung and others) kill background services. For the best results:
-- Ask users to exempt the app from battery optimization (`SleepSignals.requestBatteryOptimizationExemption()`).
-- Show `AutoSleepTracker.checkCapabilities()` issues in your settings screen.
-- See [dontkillmyapp.com](https://dontkillmyapp.com) for per-manufacturer steps.
+1. Reads the accelerometer and gyroscope for 12 seconds.
+2. Reads charging state, light, proximity, steps and screen/unlock events.
+3. Passes this snapshot to `SleepStateMachine`.
+4. Saves a one-minute record (`SleepEpoch`) and the sleep session to SQLite.
 
-## Example
+The state machine moves between four states:
 
-[`example/`](example/) is a small app with an on/off switch, permission warnings and the last 14 nights.
+```
+ Awake ──(still, dark, screen off)──► Possibly asleep
+ Possibly asleep ──(25 minutes)──► Asleep
+ Asleep ──(movement / screen / unlock / walking)──► Possibly awake
+ Possibly awake ──(5 minutes, or clearly got up)──► Awake
+ Possibly awake ──(still again)──► Asleep   (just a brief awakening)
+```
+
+The state machine has no I/O, so it can be fully unit-tested. See [`test/sleep_state_machine_test.dart`](test/sleep_state_machine_test.dart) for realistic night scenarios.
+</details>
+
+---
+
+## FAQ
+
+**Does it drain the battery?**
+Very little. Sensors are read in short bursts once a minute, not continuously, and most people charge overnight anyway.
+
+**Does the phone need to be in the bed?**
+No. A nightstand works. In the bed or under the pillow gives better movement detection.
+
+**What if the user doesn't take their phone to bed?**
+SleepSense can't track that night, unless they wear a watch that writes to Health Connect and you enable the Health Connect import.
+
+**Is any data sent to a server?**
+No. Everything stays on the device.
+
+**Why no iOS?**
+iOS doesn't let apps run a background service that reads sensors all night. iOS support would need a different approach. Contributions are welcome.
+
+---
+
+## Try the example app
+
+The [`example/`](example/) folder has a small app with an on/off switch, permission warnings and a list of recent nights:
 
 ```sh
 cd example
 flutter run
 ```
 
+---
+
 ## Contributing
 
-Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Bug reports, ideas and pull requests are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+If sleep was detected wrongly, please open an issue with your phone model and the diagnostic log from `SleepDetectionLogger().exportFormattedText()`.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Free to use in personal and commercial apps.

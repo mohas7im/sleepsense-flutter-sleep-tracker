@@ -1,4 +1,4 @@
-group = "io.github.mohas7im.auto_sleep_tracker"
+group = "io.github.mohas7im.sleep_sense"
 version = "1.0-SNAPSHOT"
 
 buildscript {
@@ -26,7 +26,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.mohas7im.auto_sleep_tracker"
+    namespace = "io.github.mohas7im.sleep_sense"
 
     compileSdk = 36
 

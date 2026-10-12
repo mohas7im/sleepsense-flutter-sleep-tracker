@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve auto_sleep_tracker!
+Thanks for helping improve sleep_sense!
 
 ## Development
 

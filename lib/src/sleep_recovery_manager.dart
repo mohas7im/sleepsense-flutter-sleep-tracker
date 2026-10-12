@@ -74,7 +74,7 @@ class SleepRecoveryManager {
 
   static const String _recoveryLogPrefKey = 'sleep_recovery_log';
 
-  /// Must be called once during app startup (done by [AutoSleepTracker.onAppStart]).
+  /// Must be called once during app startup (done by [SleepSense.onAppStart]).
   static Future<RecoveryResult> recoverOnStartup(SleepRepository repository) async {
     try {
       await repository.init();

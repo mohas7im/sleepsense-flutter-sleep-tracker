@@ -11,7 +11,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:auto_sleep_tracker/src/sleep_state_machine.dart';
+import 'package:sleep_sense/src/sleep_state_machine.dart';
 
 void main() {
   // Shared config with shorter onset/wake times for faster test runs.

@@ -1,4 +1,4 @@
-# auto_sleep_tracker example
+# sleep_sense example
 
 A minimal app that turns automatic sleep tracking on, shows permission and battery warnings, and lists the last 14 nights.
 

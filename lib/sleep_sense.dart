@@ -1,11 +1,11 @@
 /// Automatic, sensor-based sleep tracking for Flutter on Android.
 ///
-/// Start with [AutoSleepTracker]; the lower-level building blocks
+/// Start with [SleepSense]; the lower-level building blocks
 /// ([SleepStateMachine], [SleepRepository], [SleepRecoveryManager], …) are
 /// exported for apps that want finer control.
 library;
 
-export 'src/auto_sleep_tracker_api.dart';
+export 'src/sleep_sense_api.dart';
 export 'src/health_connect_sleep_sync.dart';
 export 'src/os_capability_manager.dart';
 export 'src/sensor_capability_manager.dart';
