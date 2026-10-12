@@ -43,6 +43,10 @@ class SleepSense {
   ///   night ends, even with your app closed — e.g. to show a morning
   ///   summary notification. Must be a top-level or static function
   ///   annotated `@pragma('vm:entry-point')`.
+  /// - [onBackgroundStart]: runs at the start of each background isolate,
+  ///   which doesn't run your `main()`. Use it to repeat setup the package
+  ///   needs there, such as `SleepRepository.defaultManualSessions`. Same
+  ///   top-level / `@pragma('vm:entry-point')` rule.
   /// - [initializeWorkManager]: set to false if your app already calls
   ///   `Workmanager().initialize` with its own dispatcher; then call
   ///   [handleSleepBackgroundTask] from that dispatcher.
@@ -51,10 +55,14 @@ class SleepSense {
     String notificationContent = 'Monitoring rest and sleep quality…',
     ManualSleepSource? manualSessions,
     void Function(SleepFinishedEvent event)? onSleepFinishedInBackground,
+    Future<void> Function()? onBackgroundStart,
     bool initializeWorkManager = true,
   }) async {
     SleepRepository.defaultManualSessions = manualSessions;
-    await saveSleepFinishedBackgroundCallback(onSleepFinishedInBackground);
+    await saveBackgroundCallbacks(
+      onSleepFinished: onSleepFinishedInBackground,
+      onBackgroundStart: onBackgroundStart,
+    );
     if (initializeWorkManager) {
       await Workmanager().initialize(workManagerCallbackDispatcher);
     }

@@ -207,6 +207,14 @@ class SleepDatabase {
     await _db.delete(tableName, where: 'id = ?', whereArgs: [id]);
   }
 
+  /// Removes every session and epoch.
+  Future<void> deleteAll() async {
+    await _db.transaction((txn) async {
+      await txn.delete(epochTableName);
+      await txn.delete(tableName);
+    });
+  }
+
   Future<void> deleteOldDummies() async {
     await _db.delete(tableName, where: "id LIKE 'auto_dummy_%' OR id LIKE 'auto_sim_%' OR id = 'auto_1787946869537'");
   }

@@ -137,6 +137,13 @@ class SleepRepository {
     );
   }
 
+  /// Permanently deletes every auto-detected session and its epochs, e.g.
+  /// when a different user signs in. Manual entries belong to the host app.
+  Future<void> deleteAllData() async {
+    await init();
+    await _sleepDb.deleteAll();
+  }
+
   /// Permanently deletes an auto-detected session by id.
   Future<void> deleteAutoSession(String id) async {
     await init();

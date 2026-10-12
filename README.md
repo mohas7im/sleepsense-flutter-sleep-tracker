@@ -291,6 +291,20 @@ await SleepSense.initialize(
   )).toList(),
 );
 ```
+
+Tracking runs in a background isolate that doesn't run your `main()`. To let it see manual logs too (they help it learn the user's schedule), set them again in `onBackgroundStart`:
+
+```dart
+await SleepSense.initialize(
+  manualSessions: loadMyManualSleep,
+  onBackgroundStart: setUpSleepBackground,
+);
+
+@pragma('vm:entry-point')
+Future<void> setUpSleepBackground() async {
+  SleepRepository.defaultManualSessions = loadMyManualSleep;
+}
+```
 </details>
 
 <details>

@@ -20,6 +20,7 @@
 library;
 
 import 'package:workmanager/workmanager.dart';
+import 'sleep_background_service.dart' show runBackgroundStartCallback;
 import 'sleep_detection_service.dart'; // Used for SleepDetectionService.isEnabled()
 import 'sleep_repository.dart';
 import 'sleep_recovery_manager.dart';
@@ -44,6 +45,9 @@ void workManagerCallbackDispatcher() {
 /// Apps that already have their own WorkManager dispatcher call this from it
 /// instead of using [workManagerCallbackDispatcher].
 Future<bool?> handleSleepBackgroundTask(String taskName) async {
+  if (taskName == _boundaryCheckTask || taskName == _nightWindowStartTask) {
+    await runBackgroundStartCallback();
+  }
   switch (taskName) {
     case _boundaryCheckTask:
       return _runBoundaryCheck();

@@ -1,3 +1,8 @@
+## 0.2.0
+
+* `SleepRepository.deleteAllData()` to wipe all tracked sleep (e.g. on sign-out).
+* `onBackgroundStart` option in `SleepSense.initialize` to configure the package inside background isolates.
+
 ## 0.1.0
 
 * Initial release.

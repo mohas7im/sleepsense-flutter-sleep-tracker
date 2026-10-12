@@ -27,30 +27,51 @@ import 'sleep_detection_logger.dart';
 /// Service event carrying a [SleepFinishedEvent] map to the UI isolate.
 const sleepFinishedServiceEvent = 'sleepFinished';
 
-const _backgroundCallbackKey = 'sleep_finished_background_callback';
+const _sleepFinishedCallbackKey = 'sleep_finished_background_callback';
+const _backgroundStartCallbackKey = 'sleep_background_start_callback';
 
-/// Remembers [callback] for the background isolate. Functions can't be
-/// passed between isolates, so it is stored as a callback handle — which is
-/// why it must be a top-level or static function marked
-/// `@pragma('vm:entry-point')`.
-Future<void> saveSleepFinishedBackgroundCallback(
-  void Function(SleepFinishedEvent event)? callback,
-) async {
-  final prefs = await SharedPreferences.getInstance();
-  final handle = callback == null ? null : PluginUtilities.getCallbackHandle(callback);
-  if (handle == null) {
-    await prefs.remove(_backgroundCallbackKey);
-  } else {
-    await prefs.setInt(_backgroundCallbackKey, handle.toRawHandle());
+/// Remembers the app's background callbacks for the background isolates.
+/// Functions can't be passed between isolates, so each is stored as a
+/// callback handle — which is why they must be top-level or static
+/// functions marked `@pragma('vm:entry-point')`.
+Future<void> saveBackgroundCallbacks({
+  void Function(SleepFinishedEvent event)? onSleepFinished,
+  Future<void> Function()? onBackgroundStart,
+}) async {
+  await _saveCallback(_sleepFinishedCallbackKey, onSleepFinished);
+  await _saveCallback(_backgroundStartCallbackKey, onBackgroundStart);
+}
+
+/// Runs the app's `onBackgroundStart` callback, if any. Called at the start
+/// of every background isolate (overnight service and WorkManager tasks) so
+/// the app can configure the package there, e.g. set
+/// [SleepRepository.defaultManualSessions].
+Future<void> runBackgroundStartCallback() async {
+  final callback = await _loadCallback(_backgroundStartCallbackKey);
+  if (callback is Future<void> Function()) {
+    try {
+      await callback();
+    } catch (_) {
+      // The app's setup failing must not stop sleep tracking.
+    }
   }
 }
 
-Future<void Function(SleepFinishedEvent)?> _loadBackgroundCallback() async {
+Future<void> _saveCallback(String key, Function? callback) async {
   final prefs = await SharedPreferences.getInstance();
-  final raw = prefs.getInt(_backgroundCallbackKey);
+  final handle = callback == null ? null : PluginUtilities.getCallbackHandle(callback);
+  if (handle == null) {
+    await prefs.remove(key);
+  } else {
+    await prefs.setInt(key, handle.toRawHandle());
+  }
+}
+
+Future<Function?> _loadCallback(String key) async {
+  final prefs = await SharedPreferences.getInstance();
+  final raw = prefs.getInt(key);
   if (raw == null) return null;
-  final callback = PluginUtilities.getCallbackFromHandle(CallbackHandle.fromRawHandle(raw));
-  return callback is void Function(SleepFinishedEvent) ? callback : null;
+  return PluginUtilities.getCallbackFromHandle(CallbackHandle.fromRawHandle(raw));
 }
 
 /// Registers the background service configuration. Call once from `main()`,
@@ -106,10 +127,11 @@ void onSleepServiceStart(ServiceInstance service) async {
 
   // Relay finished nights to the UI isolate, if one is listening, and to
   // the app's background callback, which runs even with the app closed.
-  final backgroundCallback = await _loadBackgroundCallback();
+  await runBackgroundStartCallback();
+  final finishedCallback = await _loadCallback(_sleepFinishedCallbackKey);
   SleepDetectionService.onSleepFinished = (event) {
     service.invoke(sleepFinishedServiceEvent, event.toMap());
-    backgroundCallback?.call(event);
+    if (finishedCallback is void Function(SleepFinishedEvent)) finishedCallback(event);
   };
 
   final detectionService = SleepDetectionService();
