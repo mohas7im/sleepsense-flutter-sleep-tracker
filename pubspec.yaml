@@ -4,8 +4,8 @@ description: >-
   sensors to detect when the user falls asleep and wakes up, with no wearable
   and no button to press.
 version: 0.2.0
-repository: https://github.com/mohas7im/SleepSense
-issue_tracker: https://github.com/mohas7im/SleepSense/issues
+repository: https://github.com/mohas7im/sleepsense-flutter-sleep-tracker
+issue_tracker: https://github.com/mohas7im/sleepsense-flutter-sleep-tracker/issues
 topics:
   - sleep
   - health

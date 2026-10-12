@@ -1,6 +1,6 @@
-# SleepSense 🌙
+# SleepSense 🌙 Automatic Sleep Tracker for Flutter
 
-[![CI](https://github.com/mohas7im/SleepSense/actions/workflows/ci.yml/badge.svg)](https://github.com/mohas7im/SleepSense/actions/workflows/ci.yml)
+[![CI](https://github.com/mohas7im/sleepsense-flutter-sleep-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/mohas7im/sleepsense-flutter-sleep-tracker/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84.svg)
 
@@ -65,7 +65,7 @@ In your app's `pubspec.yaml`:
 dependencies:
   sleep_sense:
     git:
-      url: https://github.com/mohas7im/SleepSense.git
+      url: https://github.com/mohas7im/sleepsense-flutter-sleep-tracker.git
 ```
 
 Then run `flutter pub get`.
